@@ -67,8 +67,21 @@ def main(argv):
 			outputFile.flush()
 			print('More %d saved on file...\n' % len(tweets))
 
-		got.manager.TweetManager.getTweets(tweetCriteria, receiveBuffer)
+		def daterange(start_date, end_date):
+			for n in range(int((end_date - start_date).days)):
+				yield start_date + datetime.timedelta(n)
 
+		if hasattr(tweetCriteria, 'since') and hasattr(tweetCriteria, 'until'):
+			start_date = datetime.datetime.strptime(tweetCriteria.since, "%Y-%m-%d")
+			end_date = datetime.datetime.strptime(tweetCriteria.until, "%Y-%m-%d")
+
+			for single_day in daterange(start_date, end_date):
+				tweetCriteria.since = single_day.strftime("%Y-%m-%d")
+				tweetCriteria.until = (single_day + datetime.timedelta(1)).strftime("%Y-%m-%d")
+				got.manager.TweetManager.getTweets(tweetCriteria, receiveBuffer)
+		else:
+			got.manager.TweetManager.getTweets(tweetCriteria, receiveBuffer)
+			
 	except arg:
 		print('Arguments parser error, try -h' + arg)
 	finally:
